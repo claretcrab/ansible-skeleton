@@ -1,0 +1,38 @@
+- hosts: webservers
+  user: root
+  sudo: True
+
+  vars:
+    app_name: my-project
+    repo_url: git@github.com:claretcrab/silex-skeleton.git
+    repo_remote: origin
+    repo_version: master
+    webapps_dir: /var/www
+
+  tasks:
+    - name: clone code from repository
+      git:
+        repo={{repo_url}}
+        dest={{webapps_dir}}/{{app_name}}/
+        remote={{repo_remote}}
+        version={{repo_version}}
+
+    - name: ensure cache directory
+      action:
+        file dest={{webapps_dir}}/{{app_name}}/var/cache
+        state=directory
+        mode=0777
+
+    - name: ensure logs directory
+      action:
+        file dest={{webapps_dir}}/{{app_name}}/var/logs
+        state=directory
+        mode=0777
+
+    - name: run composer install
+      composer:
+        command=install
+        working_dir={{webapps_dir}}/{{app_name}}/
+
+    - name: clear cache
+      shell: rm -rf {{webapps_dir}}/{{app_name}}/var/cache/*
